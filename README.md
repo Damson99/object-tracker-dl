@@ -3,7 +3,7 @@
 ## Model
 The [yolov8n](https://github.com/ultralytics/ultralytics) model was used to detect objects on the screen
 
-## Dataset used for training - [link](https://www.kaggle.com/datasets/bulentsiyah/semantic-drone-dataset?resource=download)
+## Dataset used for training - [link](https://github.com/VikramShenoy97/Human-Segmentation-Dataset/tree/master/Training_Images), [second link](https://www.kaggle.com/datasets/tapakah68/supervisely-filtered-segmentation-person-dataset)
 
 Command called to train model:
 ```commandline
