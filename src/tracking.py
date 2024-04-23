@@ -1,20 +1,32 @@
+import argparse
 import time
 import cv2
-import sys
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
 from RecordWriter import RecordWriter
 
 PIXELS_PER_METER = 200
-TXT_COLOR, TXT_BACKGROUND, BOUND_BOX_COLOR, OBJECT_CENTROID_COLOR = ((0, 0, 0), (255, 255, 255), (255, 0, 255), (0, 0, 0))
+TXT_COLOR, TXT_BACKGROUND, BOUND_BOX_COLOR, OBJECT_CENTROID_COLOR = (
+    (0, 0, 0), (255, 255, 255), (255, 0, 255), (0, 0, 0))
 MAX_HEIGHT_FOR_PERSON = 540
 METERS_FROM_CAMERA_WHEN_MAX_HEIGHT_PER_PERSON = 2
 
 
-def track(model_path, video_path, record_writer):
-    model = YOLO(model_path)
-    cap = cv2.VideoCapture(video_path)
+class TrackedRecord:
+    def __init__(self, box, class_name, detection_probability, start_time, tracked_id):
+        self.tracked_id = tracked_id
+        self.class_name = class_name
+        self.detection_probability = detection_probability
+        self.obj_height = int(box[3] - box[1])
+        self.obj_width = int(box[2] - box[0])
+        self.elapsed_time = elapse_time(start_time)
+
+
+def track(args: argparse.Namespace, record_writer: RecordWriter):
+    model = YOLO(args.model_path)
+    cap = cv2.VideoCapture(args.video_path)
+    class_names = model.names
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
     center_point = (w // 2, h // 2)
     out = cv2.VideoWriter('tracking.mp4', cv2.VideoWriter_fourcc(*'MP4V'), fps, (w, h))
@@ -30,19 +42,24 @@ def track(model_path, video_path, record_writer):
 
         annotator = Annotator(frame, line_width=1)
         results = model.track(frame, verbose=False, persist=True, conf=0.7)
-        boxes = results[0].boxes.xyxy.cpu()
+        boxes = results[0].boxes
+        boxes_xyxy = boxes.xyxy.cpu()
 
-        if results[0].boxes.id is not None:
-            tracked_ids = results[0].boxes.id.int().cpu().tolist()
+        if boxes.id is not None:
+            tracked_ids = boxes.id.int().cpu().tolist()
 
-            for box, tracked_id in zip(boxes, tracked_ids):
-                obj_height = int(box[3] - box[1])
-                obj_width = int(box[2] - box[0])
-                save_tracked_result(obj_height, obj_width, record_writer, start_time, tracked_id)
+            for box, tracked_id, class_name_cl, detection_probability in zip(
+                    boxes_xyxy, tracked_ids, boxes.cls, boxes.conf.cpu().numpy()
+            ):
+                class_name = class_names[int(class_name_cl)]
+                tracked_record: TrackedRecord = TrackedRecord(
+                    box, class_name, detection_probability, start_time, tracked_id
+                )
+                save_tracked_result(tracked_record, record_writer)
 
                 annotator.box_label(box, label=str(tracked_id), color=BOUND_BOX_COLOR)
                 annotator.visioneye(box, center_point, OBJECT_CENTROID_COLOR, OBJECT_CENTROID_COLOR, 2, 5)
-                draw_tracked_data(frame, box, obj_height)
+                draw_tracked_data(frame, box, tracked_record.obj_height)
 
         out.write(frame)
         cv2.imshow("tracking", results[0].plot())
@@ -57,9 +74,8 @@ def track(model_path, video_path, record_writer):
     cv2.destroyAllWindows()
 
 
-def save_tracked_result(obj_height, obj_width, record_writer, start_time, tracked_id):
-    elapsed_time = elapse_time(start_time)
-    record_writer.save_record([tracked_id, 'person', 0.7, obj_height, obj_width, elapsed_time])  # make this async and get real class name with probability
+def save_tracked_result(tracked_record: TrackedRecord, record_writer: RecordWriter):
+    record_writer.save_record(tracked_record)  # make this async and get real class name with probability
 
 
 def elapse_time(start_time):
@@ -94,8 +110,10 @@ def compute_deep_distance(obj_height):
 
 
 if __name__ == "__main__":
-    model_path = str(sys.argv[1])
-    video_path = str(sys.argv[2])
-    record_writer = RecordWriter()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('-vp', '--video-path', type=str, required=True,
+                        help='Path to video that will be processed.')
+    parser.add_argument('-mp', '--model-path', type=str, required=True,
+                        help='Path to model.')
 
-    track(model_path, video_path, record_writer)
+    track(parser.parse_args(), RecordWriter())
