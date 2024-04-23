@@ -1,5 +1,7 @@
 import csv
 
+from tracking import TrackedRecord
+
 FIELDNAMES = [
     'tracked_id',
     'detected_class_name',
@@ -18,14 +20,14 @@ class RecordWriter:
         self.writer = csv.DictWriter(self.file, fieldnames=FIELDNAMES)
         self.writer.writeheader()
 
-    def save_record(self, tracked_attributes):
+    def save_record(self, tracked_record: TrackedRecord):
         tracked_record = {
-            FIELDNAMES[0]: tracked_attributes[0],
-            FIELDNAMES[1]: tracked_attributes[1],
-            FIELDNAMES[2]: tracked_attributes[2],
-            FIELDNAMES[3]: tracked_attributes[3],
-            FIELDNAMES[4]: tracked_attributes[4],
-            FIELDNAMES[5]: tracked_attributes[5],
+            FIELDNAMES[0]: tracked_record.tracked_id,
+            FIELDNAMES[1]: tracked_record.class_name,
+            FIELDNAMES[2]: tracked_record.detection_probability,
+            FIELDNAMES[3]: tracked_record.obj_height,
+            FIELDNAMES[4]: tracked_record.obj_width,
+            FIELDNAMES[5]: tracked_record.elapsed_time,
         }
         self.writer.writerow(tracked_record)
 
