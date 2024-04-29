@@ -1,21 +1,14 @@
 import csv
 
-from tracking import TrackedRecord
+from webencodings import UTF8
 
-FIELDNAMES = [
-    'tracked_id',
-    'detected_class_name',
-    'detection_probability',
-    'detected_object_width',
-    'detected_object_height',
-    'detection_time_in_sec'
-]
+from track.TrackedObject import FIELDNAMES, TrackedRecord
 
 
-class RecordWriter:
+class FileTrackObjectRepository:
 
     def __init__(self):
-        self.file = open('tracked_data.csv', 'a', encoding='UTF8', newline='')
+        self.file = open('tracked_data.csv', 'a', encoding=UTF8.name, newline='')
         self.file.truncate(0)
         self.writer = csv.DictWriter(self.file, fieldnames=FIELDNAMES)
         self.writer.writeheader()
