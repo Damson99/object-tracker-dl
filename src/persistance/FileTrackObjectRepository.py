@@ -2,7 +2,7 @@ import csv
 
 from webencodings import UTF8
 
-from track.TrackedObject import FIELDNAMES, TrackedRecord
+from service.track.TrackedObject import FIELDNAMES, TrackedRecord
 
 
 class FileTrackObjectRepository:

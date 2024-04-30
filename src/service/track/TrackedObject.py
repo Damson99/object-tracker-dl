@@ -1,6 +1,6 @@
 from torch import Tensor
 
-from clock import TimeProvider
+from service.clock import TimeProvider
 
 FIELDNAMES = [
     'tracked_id',
