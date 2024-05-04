@@ -1,8 +1,8 @@
 from torch import Tensor
 from ultralytics import YOLO
 
-from persistance import FileTrackObjectRepository
-from service.track.TrackedObject import TrackedRecord
+from main.persistance import FileTrackObjectRepository
+from main.service.track.TrackedObject import TrackedRecord
 
 
 class Tracker:

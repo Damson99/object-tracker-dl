@@ -3,7 +3,7 @@ import numpy
 from torch import Tensor
 from ultralytics.utils.plotting import Annotator
 
-from service.track.TrackedObject import TrackedRecord
+from main.service.track.TrackedObject import TrackedRecord
 
 PIXELS_PER_METER = 200
 TXT_COLOR = (0, 0, 0)

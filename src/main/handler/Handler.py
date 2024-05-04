@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 
-class Handler:
+class Handler(ABC):
 
     @abstractmethod
     def is_opened(self) -> bool:
@@ -17,4 +17,8 @@ class Handler:
 
     @abstractmethod
     def release(self):
+        pass
+
+    @abstractmethod
+    def move(self, angle_to_move):
         pass
