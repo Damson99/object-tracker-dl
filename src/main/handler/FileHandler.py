@@ -1,6 +1,6 @@
 import cv2
 
-from handler.Handler import Handler
+from main.handler.Handler import Handler
 
 
 class FileHandler(Handler):
@@ -13,10 +13,13 @@ class FileHandler(Handler):
     def get_center_point(self) -> tuple[int, int]:
         screen_width, screen_height = (int(self._cap.get(x))
                                        for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
-        return screen_width // 2, screen_height // 2
+        return screen_height // 2, screen_width // 2
 
     def read(self) -> tuple:
         return self._cap.read()
 
     def release(self):
         self._cap.release()
+
+    def move(self, angle_to_move):
+        pass
