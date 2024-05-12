@@ -30,8 +30,18 @@ class TelloHandler(Handler):
     def release(self):
         self._drone_client.land()
 
-    def move(self, angle):
+    def move(self, angle: int, deep_distance: int):
+        print(deep_distance)
         try:
-            self._drone_client.rotate_clockwise(angle)
-        except:
-            print('error while sending command')
+            # self._drone_client.rotate_clockwise(angle)
+            self._drone_client.go_xyz_speed_yaw_mid(
+                0,
+                0,
+                int(deep_distance),
+                50,
+                int(angle),
+                0,
+                0
+            )
+        except Exception as e:
+            print('error while sending command {}'.format(e))

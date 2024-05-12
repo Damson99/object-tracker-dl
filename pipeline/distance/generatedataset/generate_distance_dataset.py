@@ -39,8 +39,8 @@ def main(distance_to_object_with_full_height: int):
             move_by_output.append(int(distance_to_object_with_full_height / float(width_percentage / 100)))
 
     data = pd.DataFrame({
-        'width_percentage': width_percentage_range_output,
         'height_percentage': height_percentage_range_output,
+        'width_percentage': width_percentage_range_output,
         'move_by': move_by_output,
     })
 

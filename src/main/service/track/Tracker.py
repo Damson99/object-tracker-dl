@@ -35,6 +35,6 @@ class Tracker:
             start_time=self._start_time,
             tracked_id=tracked_id
         )
-        self._track_object_repository.save_record(tracked_record)
+        # self._track_object_repository.save_record(tracked_record)
         return tracked_record
 

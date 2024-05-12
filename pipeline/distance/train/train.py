@@ -23,7 +23,7 @@ grid_search = GridSearchCV(
     random_forest, grid_param, cv=10, scoring='neg_mean_squared_error', return_train_score=True
 )
 
-grid_search.fit(x, y)
+grid_search.fit(x.values, y)
 print('best params')
 print(grid_search.best_params_)
 print('best estimators')

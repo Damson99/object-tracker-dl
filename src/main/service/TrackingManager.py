@@ -2,7 +2,6 @@ from concurrent import futures
 
 import cv2
 import numpy
-from torch import Tensor
 
 from main.handler.FileHandler import FileHandler
 from main.handler.Handler import Handler
@@ -42,12 +41,12 @@ class TrackingManager:
             track_object_repository=self._track_object_repository,
             start_time=self._start_time
         )
-        self._angle_executor = futures.ThreadPoolExecutor(1)
+        self._external_device_executor = futures.ThreadPoolExecutor(1)
+        self._screen_executor = futures.ThreadPoolExecutor(1)
 
     def manage(self):
         tracking_id = 1
-        tracking_object = None
-        tracking_box = None
+        tracking_record = None
         while self._handler.is_opened():
             is_success, frame = self._handler.read()
 
@@ -66,19 +65,25 @@ class TrackingManager:
                     x_clicked, y_clicked = self._screen_printer.get_clicked_point()
 
                     tracked_record = self._tracker.build_record(class_name_cl, box, tracked_id, detection_probability)
-                    tracking_box, tracking_object, new_tracking_id = self._update_tracking_object(
-                        output_frame=output_frame,
-                        box=box,
-                        tracking_box=tracking_box,
+                    tracking_record = self._update_tracking_object(
                         tracked_record=tracked_record,
-                        tracking_object=tracking_object,
+                        tracking_record=tracking_record,
                         tracking_id=tracking_id,
                         x_clicked=x_clicked,
                         y_clicked=y_clicked
                     )
-                    tracking_id = new_tracking_id
+                    tracking_id = tracking_record.get_tracked_id()
 
-                self._angle_executor.submit(self._handle_async, output_frame, tracking_box)
+                screen_height, screen_width, _ = output_frame.shape
+                width_position_as_float = tracking_record.get_width() / screen_width
+                width_position_in_percentage = int(width_position_as_float * 100)
+                height_position_as_float = tracking_record.get_height() / screen_height
+                height_position_in_percentage = int(height_position_as_float * 100)
+
+                deep_distance = self._distance_resolver.resolve(height_position_in_percentage, width_position_in_percentage)
+                angle = self._angle_resolver.resolve(width_position_in_percentage)
+                self._screen_executor.submit(self._screen_printer.draw_tracked_data, output_frame, tracking_record, deep_distance)
+                self._external_device_executor.submit(self._handler.move, angle, deep_distance)
 
             self._screen_printer.show(output_frame)
 
@@ -87,34 +92,24 @@ class TrackingManager:
 
         print("--- %s seconds ---" % TimeProvider.elapsed_time(self._start_time))
         self._handler.release()
-        self._angle_executor.shutdown()
+        self._external_device_executor.shutdown()
         self._track_object_repository.close()
         cv2.destroyAllWindows()
 
     def _update_tracking_object(
             self,
-            output_frame: numpy.ndarray,
-            box: Tensor,
-            tracking_box: Tensor,
             tracked_record: TrackedRecord,
-            tracking_object: TrackedRecord,
+            tracking_record: TrackedRecord,
             tracking_id: int,
             x_clicked: int,
             y_clicked: int
     ):
-        if box[0] < x_clicked < box[2] and box[1] < y_clicked < box[3]:
-            tracking_id = tracked_record.tracked_id
-        if tracking_id == tracked_record.tracked_id:
-            tracking_box = box
-            tracking_object = tracked_record
-            deep_distance = self._distance_resolver.resolve(tracking_object.obj_height, tracking_object.obj_width)
-            self._screen_printer.draw_tracked_data(output_frame, box, tracked_record, deep_distance)
-        return tracking_box, tracking_object, tracking_id
-
-    def _handle_async(self, output_frame: numpy.ndarray, tracking_box: Tensor):
-        _, screen_width, _ = output_frame.shape
-        angle_to_move = self._angle_resolver.resolve(tracking_box, screen_width)
-        self._handler.move(angle_to_move)
+        tracked_box = tracked_record.get_box()
+        if tracked_box[0] < x_clicked < tracked_box[2] and tracked_box[1] < y_clicked < tracked_box[3]:
+            tracking_id = tracked_record.get_tracked_id()
+        if tracking_id == tracked_record.get_tracked_id():
+            tracking_record = tracked_record
+        return tracking_record
 
     def _choose_handler(self, is_drone_source, video_path) -> Handler:
         if is_drone_source:

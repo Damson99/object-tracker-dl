@@ -22,5 +22,5 @@ class Handler(ABC):
         pass
 
     @abstractmethod
-    def move(self, angle_to_move):
+    def move(self, angle: int, deep_distance: int):
         pass

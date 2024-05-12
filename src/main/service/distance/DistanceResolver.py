@@ -1,10 +1,10 @@
-MAX_HEIGHT_FOR_PERSON = 540
-METERS_FROM_CAMERA_WHEN_MAX_HEIGHT_PER_PERSON = 2
+import joblib
+import numpy
 
 
 class DistanceResolver:
     def __init__(self, distance_model_path: str):
-        self._distance_model_path = distance_model_path  # todo add model
+        self._distance_model = joblib.load(distance_model_path)
 
-    def resolve(self, obj_height, obj_width):
-        return METERS_FROM_CAMERA_WHEN_MAX_HEIGHT_PER_PERSON / (obj_height / MAX_HEIGHT_FOR_PERSON)
+    def resolve(self, height_position_in_percentage: int, width_position_in_percentage: int) -> int:
+        return self._distance_model.predict([[height_position_in_percentage, width_position_in_percentage]])[0]
