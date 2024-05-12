@@ -1,4 +1,5 @@
 import cv2
+import numpy
 
 from main.handler.Handler import Handler
 
@@ -11,11 +12,11 @@ class FileHandler(Handler):
         return self._cap.isOpened()
 
     def get_center_point(self) -> tuple[int, int]:
-        screen_width, screen_height = (int(self._cap.get(x))
+        screen_height, screen_width = (int(self._cap.get(x))
                                        for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
-        return screen_height // 2, screen_width // 2
+        return int(screen_height / 2), int(screen_width / 2)
 
-    def read(self) -> tuple:
+    def read(self) -> tuple[bool, numpy.ndarray]:
         return self._cap.read()
 
     def release(self):

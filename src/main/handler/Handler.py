@@ -1,5 +1,7 @@
 from abc import abstractmethod, ABC
 
+import numpy
+
 
 class Handler(ABC):
 
@@ -12,7 +14,7 @@ class Handler(ABC):
         pass
 
     @abstractmethod
-    def read(self) -> tuple:
+    def read(self) -> tuple[bool, numpy.ndarray]:
         pass
 
     @abstractmethod
