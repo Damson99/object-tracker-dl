@@ -14,8 +14,9 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_
 regressor = LinearRegression()
 regressor.fit(x_train.values, y_train.values)
 
-prediction = regressor.predict(x_test.values)
-score = r2_score(y_test.values, prediction)
+predictions = regressor.predict(x_test.values)
+score = r2_score(y_test.values, predictions)
+print(predictions)
 print("On test data model has a coefficient R^2 of ", score)
 
 filename = '../../../model/angle_regressor_model.sav'

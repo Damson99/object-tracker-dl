@@ -1,3 +1,4 @@
+import numpy
 from torch import Tensor
 from ultralytics import YOLO
 
@@ -19,11 +20,11 @@ class Tracker:
         self._track_object_repository = track_object_repository
         self._start_time = start_time
 
-    def track(self, frame) -> tuple:
+    def track(self, frame: numpy.ndarray) -> tuple:
         results: list = self._tracking_model.track(frame, verbose=False, persist=True, conf=self._model_confidence)
         boxes = results[0].boxes
         boxes_xyxy = boxes.xyxy.cpu()
-        return results, boxes, boxes_xyxy
+        return results[0].plot(), boxes, boxes_xyxy
 
     def build_record(self, class_name_cl, box: Tensor, tracked_id: int, detection_probability: float) -> TrackedRecord:
         class_name = self._tracking_model.names[int(class_name_cl)]
@@ -34,6 +35,6 @@ class Tracker:
             start_time=self._start_time,
             tracked_id=tracked_id
         )
-        self._track_object_repository.save_record(tracked_record)  # todo could be async
+        # self._track_object_repository.save_record(tracked_record)
         return tracked_record
 

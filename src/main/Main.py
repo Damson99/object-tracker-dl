@@ -6,7 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-vp', '--video-path', type=str, required=False,
                         help='Path to video that will be processed.')
-    parser.add_argument('-ds', '--drone-source', type=bool, required=False,
+    parser.add_argument('-ds', '--drone-source', type=bool, required=False, default=False,
                         help='Informs program that it should use drone as a camera source. '
                              'Before that, there is a need to connect to the drone\'s wifi network')
     parser.add_argument('-tmp', '--tracking-model-path', type=str, required=True,
