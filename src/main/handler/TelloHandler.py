@@ -1,6 +1,11 @@
+import random
+import time
+from threading import Thread
+
 from djitellopy import Tello
 from sympy import true
 
+from main.handler import TelloReceiverHandler
 from main.handler.Handler import Handler
 
 
@@ -11,10 +16,13 @@ class TelloHandler(Handler):
     def __init__(self):
         self._drone_client = Tello()
         self._drone_client.connect()
-        print(self._drone_client .get_battery())
         self._drone_client.streamon()
+        Tello.RESPONSE_TIMEOUT = 0.1
+
+        print(self._drone_client.get_battery())
+
         self._drone_client.set_speed(100)
-        # self._drone_client.takeoff()
+        self._drone_client.takeoff()
 
     def is_opened(self) -> bool:
         return true
@@ -30,18 +38,17 @@ class TelloHandler(Handler):
     def release(self):
         self._drone_client.land()
 
-    def move(self, angle: int, deep_distance: int):
-        print(deep_distance)
+    def move(self, angle: int, move_by: int):
         try:
-            # self._drone_client.rotate_clockwise(angle)
-            self._drone_client.go_xyz_speed_yaw_mid(
-                0,
-                0,
-                int(deep_distance),
-                50,
-                int(angle),
-                0,
-                0
-            )
+            self._drone_client.rotate_clockwise(int(angle))
+            if move_by > 20:
+                if move_by > 500:
+                    move_by = 500
+                self._drone_client.move_forward(int(move_by))
+            else:
+                if move_by < -20:
+                    if move_by < -500:
+                        move_by = -500
+                    self._drone_client.move_back(int(move_by))
         except Exception as e:
             print('error while sending command {}'.format(e))

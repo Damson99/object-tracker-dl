@@ -37,6 +37,14 @@ class TrackedRecord:
     def get_width(self):
         return self._obj_width
 
+    def get_y_position_percentage(self, screen_height: int) -> int:
+        y_position_as_px = int((self._box[3] + self._box[1]) / 2)
+        return int((y_position_as_px / screen_height) * 100)
+
+    def get_x_position_percentage(self, screen_width: int) -> int:
+        x_position_as_px = int((self._box[2] + self._box[0]) / 2)
+        return int((x_position_as_px / screen_width) * 100)
+
     def get_elapsed_time(self):
         return self._elapsed_time
 

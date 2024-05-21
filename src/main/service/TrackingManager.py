@@ -1,7 +1,6 @@
 from concurrent import futures
 
 import cv2
-import numpy
 
 from main.handler.FileHandler import FileHandler
 from main.handler.Handler import Handler
@@ -57,6 +56,7 @@ class TrackingManager:
             output_frame, boxes, boxes_xyxy = self._tracker.track(frame)
             if boxes.id is not None:
                 tracked_ids = boxes.id.int().cpu().tolist()
+                screen_height, screen_width, _ = output_frame.shape
 
                 for box, tracked_id, class_name_cl, detection_probability in zip(
                         boxes_xyxy, tracked_ids, boxes.cls, boxes.conf.cpu().numpy()
@@ -74,16 +74,12 @@ class TrackingManager:
                     )
                     tracking_id = tracking_record.get_tracked_id()
 
-                screen_height, screen_width, _ = output_frame.shape
-                width_position_as_float = tracking_record.get_width() / screen_width
-                width_position_in_percentage = int(width_position_as_float * 100)
-                height_position_as_float = tracking_record.get_height() / screen_height
-                height_position_in_percentage = int(height_position_as_float * 100)
-
-                deep_distance = self._distance_resolver.resolve(height_position_in_percentage, width_position_in_percentage)
-                angle = self._angle_resolver.resolve(width_position_in_percentage)
-                self._screen_executor.submit(self._screen_printer.draw_tracked_data, output_frame, tracking_record, deep_distance)
-                self._external_device_executor.submit(self._handler.move, angle, deep_distance)
+                x_position_percentage = tracking_record.get_x_position_percentage(screen_width)
+                y_position_percentage = tracking_record.get_y_position_percentage(screen_height) / screen_height
+                move_by = self._distance_resolver.resolve(y_position_percentage, x_position_percentage)
+                angle = self._angle_resolver.resolve(x_position_percentage)
+                # self._external_device_executor.submit(self._handler.move, angle, move_by)
+                self._handler.move(angle, move_by)
 
             self._screen_printer.show(output_frame)
 
