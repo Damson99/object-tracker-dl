@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import GridSearchCV
 
-dataset = pd.read_csv('../generatedataset/distance_dataset.csv')
+dataset = pd.read_csv('distance_dataset.csv')
 
 x = dataset.drop('move_by', axis=1)
 y = dataset['move_by']
@@ -42,5 +42,5 @@ print(grid_rmse)
 accuracy = accuracy_score(y, predictions)
 print(f'Accuracy: {accuracy:.2f}')
 
-filename = '../../../model/distance_random_forest_model.pickle'
+filename = '../../model/distance_random_forest_model.pickle'
 joblib.dump(grid_search, filename)

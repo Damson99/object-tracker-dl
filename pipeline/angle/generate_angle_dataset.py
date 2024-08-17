@@ -27,4 +27,4 @@ if __name__ == "__main__":
     parser.add_argument('-av', '--angle-visibility', type=int, required=True,
                         help='camera angle visibility in degrees.')
     args = parser.parse_args()
-    main(int(args.angle_visibility / 2))
+    main(args.angle_visibility)
