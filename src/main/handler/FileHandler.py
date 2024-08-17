@@ -1,11 +1,14 @@
+from abc import ABC
+
 import cv2
 import numpy
 
 from main.handler.Handler import Handler
 
 
-class FileHandler(Handler):
+class FileHandler(Handler, ABC):
     def __init__(self, video_path):
+        super().__init__()
         self._cap = cv2.VideoCapture(video_path)
 
     def is_opened(self) -> bool:

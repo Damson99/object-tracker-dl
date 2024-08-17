@@ -40,8 +40,7 @@ class TrackingManager:
             track_object_repository=self._track_object_repository,
             start_time=self._start_time
         )
-        self._external_device_executor = futures.ThreadPoolExecutor(1)
-        self._screen_executor = futures.ThreadPoolExecutor(1)
+        self._command_consumer_executor = futures.ThreadPoolExecutor(1)
 
     def manage(self):
         tracking_id = 1
@@ -75,11 +74,11 @@ class TrackingManager:
                     tracking_id = tracking_record.get_tracked_id()
 
                 x_position_percentage = tracking_record.get_x_position_percentage(screen_width)
-                y_position_percentage = tracking_record.get_y_position_percentage(screen_height) / screen_height
+                y_position_percentage = tracking_record.get_y_position_percentage(screen_height)
                 move_by = self._distance_resolver.resolve(y_position_percentage, x_position_percentage)
                 angle = self._angle_resolver.resolve(x_position_percentage)
-                # self._external_device_executor.submit(self._handler.move, angle, move_by)
-                self._handler.move(angle, move_by)
+                print('angle {}, move_by {}'.format(angle, move_by))
+                self._command_consumer_executor.submit(self._handler.move, angle, move_by)
 
             self._screen_printer.show(output_frame)
 
@@ -88,7 +87,7 @@ class TrackingManager:
 
         print("--- %s seconds ---" % TimeProvider.elapsed_time(self._start_time))
         self._handler.release()
-        self._external_device_executor.shutdown()
+        self._command_consumer_executor.shutdown()
         self._track_object_repository.close()
         cv2.destroyAllWindows()
 
