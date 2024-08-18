@@ -7,21 +7,11 @@ from PIL import Image, ImageOps, ImageEnhance
 def perform(
         input_path: str,
         output_path: str,
-        image_format: str,
-        image_size_x_y: tuple[int, int],
+        image_format: str
 ):
     image = Image.open(input_path)
     base_name = os.path.splitext(os.path.basename(input_path))[0]
     augmented_images = [(f"{base_name}_original", image)]
-
-    rotated_90 = image.rotate(90, expand=True)
-    rotated_180 = image.rotate(180, expand=True)
-    rotated_270 = image.rotate(270, expand=True)
-    augmented_images.extend([
-        (f"{base_name}_rotated_90", rotated_90),
-        (f"{base_name}_rotated_180", rotated_180),
-        (f"{base_name}_rotated_270", rotated_270)
-    ])
 
     rotated_15 = image.rotate(15, expand=True)
     rotated_30 = image.rotate(30, expand=True)
@@ -30,11 +20,9 @@ def perform(
         (f"{base_name}_rotated_30", rotated_30)
     ])
 
-    flipped_horizontal = ImageOps.mirror(image)
-    flipped_vertical = ImageOps.flip(image)
+    mirror = ImageOps.mirror(image)
     augmented_images.extend([
-        (f"{base_name}_flipped_horizontal", flipped_horizontal),
-        (f"{base_name}_flipped_vertical", flipped_vertical)
+        (f"{base_name}_mirror", mirror)
     ])
 
     for x_shift, y_shift in [(50, 0), (0, 50), (50, 50), (-50, 0), (0, -50), (-50, -50)]:
@@ -65,32 +53,36 @@ def perform(
         os.makedirs(output_path)
 
     for image_name, img in augmented_images:
-        output_path = os.path.join(output_path, f'{image_name:03d}.{image_format}')
-        img = img.resize(image_size_x_y)
+        file = f'{image_name}.{image_format}'
+        output_path = os.path.join(output_path, file)
         img.save(output_path)
+        output_path = output_path.removesuffix(file)
 
 
-# python3 dataset_augmentation.py -ip /path/pokemons -op /path/out -is 128x128 -if png -gm
+# python3 dataset_augmentation.py -ip /path/pokemons -op /path/out -is 128x128 -if png
 def main():
     args = parse_args().parse_args()
-    image_size_arr = args.image_size.lower().split('x')
 
     for filename in os.listdir(args.input_path):
         file_path = os.path.join(args.input_path, filename)
         perform(
             file_path,
             args.output_path,
-            args.image_format,
-            (int(image_size_arr[0]), int(image_size_arr[1]))
+            args.image_format
         )
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-ip', '--input-path', type=str, help='path which contains train and test directories.')
-    parser.add_argument('-op', '--output-path', type=str, help='path where the generated dataset will be stored.')
-    parser.add_argument('-if', '--image-format', choices=['png', 'jpg'], help='image format.')
-    parser.add_argument('-is', '--image-size', type=str, help='size of the output images, format INTxINT.')
+    parser.add_argument(
+        '-ip', '--input-path', type=str, help='path which contains train and test directories.', required=True
+    )
+    parser.add_argument(
+        '-op', '--output-path', type=str, help='path where the generated dataset will be stored.', required=True
+    )
+    parser.add_argument(
+        '-if', '--image-format', choices=['png', 'jpg'], help='image format.', required=True
+    )
     return parser
 
 
