@@ -44,6 +44,10 @@ def process_images(input_dir, output_dir):
             save_yolo_format(boxes, output_path)
 
 
-input_dir = 'C:/Users/damia/OneDrive/Pulpit/augmentated-dataset/masks/val'
-output_dir = 'C:/Users/damia/OneDrive/Pulpit/augmentated-dataset/labels/val'
-process_images(input_dir, output_dir)
+val_input_dir = '/content/dataset/val/masks'
+val_output_dir = '/content/dataset/val/labels'
+train_input_dir = '/content/dataset/train/masks'
+train_output_dir = '/content/dataset/train/labels'
+
+process_images(val_input_dir, val_output_dir)
+process_images(train_input_dir, train_output_dir)

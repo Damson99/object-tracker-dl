@@ -7,8 +7,8 @@ from main.handler.Handler import Handler
 from main.handler.TelloHandler import TelloHandler
 from main.persistance.FileTrackObjectRepository import FileTrackObjectRepository
 from main.service.clock import TimeProvider
-from main.service.distance.AngleResolver import AngleResolver
-from main.service.distance.DistanceResolver import DistanceResolver
+from main.service.resolver.AngleResolver import AngleResolver
+from main.service.resolver.DistanceResolver import DistanceResolver
 from main.service.screen.ScreenPrinter import ScreenPrinter
 from main.service.track.TrackedObject import TrackedRecord
 from main.service.track.Tracker import Tracker
@@ -19,8 +19,6 @@ class TrackingManager:
             self,
             video_path: str,
             is_drone_source: bool,
-            distance_model_path: str,
-            angle_model_path: str,
             tracking_model_path: str,
             model_confidence: float
     ):
@@ -30,8 +28,8 @@ class TrackingManager:
 
         self._handler = self._choose_handler(is_drone_source, video_path)
         self._screen_printer = ScreenPrinter()
-        self._distance_resolver = DistanceResolver(distance_model_path)
-        self._angle_resolver = AngleResolver(angle_model_path)
+        self._distance_resolver = DistanceResolver()
+        self._angle_resolver = AngleResolver()
         self._track_object_repository = FileTrackObjectRepository()
         self._start_time = TimeProvider.now()
         self._tracker = Tracker(
@@ -44,7 +42,9 @@ class TrackingManager:
 
     def manage(self):
         tracking_id = 1
+        counter = 0
         tracking_record = None
+        self._waitForCamera()
         while self._handler.is_opened():
             is_success, frame = self._handler.read()
 
@@ -74,11 +74,12 @@ class TrackingManager:
                     tracking_id = tracking_record.get_tracked_id()
 
                 x_position_percentage = tracking_record.get_x_position_percentage(screen_width)
-                y_position_percentage = tracking_record.get_y_position_percentage(screen_height)
-                move_by = self._distance_resolver.resolve(y_position_percentage, x_position_percentage)
+                height_as_percentage = tracking_record.get_height_as_percentage(screen_height)
+                move_by = self._distance_resolver.resolve(height_as_percentage)
                 angle = self._angle_resolver.resolve(x_position_percentage)
-                print('angle {}, move_by {}'.format(angle, move_by))
-                self._command_consumer_executor.submit(self._handler.move, angle, move_by)
+                counter = self.submit_command(angle, counter, move_by)
+            else:
+                counter = self.submit_command(0, counter, 0)
 
             self._screen_printer.show(output_frame)
 
@@ -90,6 +91,12 @@ class TrackingManager:
         self._command_consumer_executor.shutdown()
         self._track_object_repository.close()
         cv2.destroyAllWindows()
+
+    def submit_command(self, angle, counter, move_by):
+        counter = counter + 1
+        if counter % 2:
+            self._command_consumer_executor.submit(self._handler.move, angle, move_by)
+        return counter
 
     def _update_tracking_object(
             self,
@@ -122,3 +129,15 @@ class TrackingManager:
                 or (model_confidence > 1.0 > model_confidence
                     or conf_as_str_len != 3)):
             raise ValueError('invalid model-confidence parameter. Should be value in range 0.1 - 1.0.')
+
+    def _waitForCamera(self):
+        while self._handler.is_opened():
+            is_success, frame = self._handler.read()
+
+            if not is_success:
+                print("Video is empty.")
+                break
+
+            if is_success:
+                self._handler.run()
+                break

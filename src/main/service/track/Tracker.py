@@ -21,7 +21,13 @@ class Tracker:
         self._start_time = start_time
 
     def track(self, frame: numpy.ndarray) -> tuple:
-        results: list = self._tracking_model.track(frame, verbose=False, persist=True, conf=self._model_confidence)
+        results: list = self._tracking_model.track(
+            frame,
+            verbose=False,
+            persist=True,
+            conf=self._model_confidence,
+            classes=0
+        )
         boxes = results[0].boxes
         boxes_xyxy = boxes.xyxy.cpu()
         return results[0].plot(), boxes, boxes_xyxy
