@@ -16,6 +16,9 @@ class TelloHandler(Handler, ABC):
         self._drone_client.connect()
         print(self._drone_client.get_battery())
         self._drone_client.streamon()
+
+    def run(self):
+        pass
         self._drone_client.takeoff()
         # self._drone_client.move_up(50)
 
@@ -34,27 +37,10 @@ class TelloHandler(Handler, ABC):
         self._drone_client.land()
 
     def move(self, angle: int, move_by: int):
-        # if move_by > 50:
-        #     move_by = 50
-        # if move_by < -50:
-        #     move_by = -50
-        angle = angle * 2
+        print("move_by", move_by)
         self._drone_client.send_rc_control(
             int(0),
-            int(0),
+            int(move_by),
             int(0),
             int(angle)
         )
-        # try:
-            # self._drone_client.rotate_clockwise(int(angle))
-            # if move_by > 20:
-            #     if move_by > 500:
-            #         move_by = 500
-            #     self._drone_client.move_forward(int(move_by))
-            # else:
-            #     if move_by < -20:
-            #         if move_by < -500:
-            #             move_by = -500
-            #         self._drone_client.move_back(int(move_by))
-        # except Exception as e:
-        #     print('error while sending command {}'.format(e))

@@ -11,12 +11,10 @@ def perform(
 ):
     image = Image.open(input_path)
     base_name = os.path.splitext(os.path.basename(input_path))[0]
-    augmented_images = [(f"{base_name}_original", image)]
+    augmented_images = []
 
-    rotated_15 = image.rotate(15, expand=True)
     rotated_30 = image.rotate(30, expand=True)
     augmented_images.extend([
-        (f"{base_name}_rotated_15", rotated_15),
         (f"{base_name}_rotated_30", rotated_30)
     ])
 
@@ -59,16 +57,23 @@ def perform(
         output_path = output_path.removesuffix(file)
 
 
-# python3 dataset_augmentation.py -ip /path/pokemons -op /path/out -is 128x128 -if png
+# python3 dataset_augmentation.py -ip /path/ -op /path/out -if png
 def main():
     args = parse_args().parse_args()
 
-    for filename in os.listdir(args.input_path):
-        file_path = os.path.join(args.input_path, filename)
+    perform_for(args.input_path + '/train/images/', args.output_path + '/train/images/', args.image_format)
+    perform_for(args.input_path + '/val/images/', args.output_path + '/val/images/', args.image_format)
+    perform_for(args.input_path + '/train/masks/', args.output_path + '/train/masks/', args.image_format)
+    perform_for(args.input_path + '/val/masks/', args.output_path + '/val/masks/', args.image_format)
+
+
+def perform_for(input_path, output_path, image_format):
+    for filename in os.listdir(input_path):
+        file_path = os.path.join(input_path, filename)
         perform(
             file_path,
-            args.output_path,
-            args.image_format
+            output_path,
+            image_format
         )
 
 
