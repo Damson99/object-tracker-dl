@@ -44,7 +44,6 @@ class TrackingManager:
         tracking_id = 1
         counter = 0
         tracking_record = None
-        self._waitForCamera()
         while self._handler.is_opened():
             is_success, frame = self._handler.read()
 
@@ -129,15 +128,3 @@ class TrackingManager:
                 or (model_confidence > 1.0 > model_confidence
                     or conf_as_str_len != 3)):
             raise ValueError('invalid model-confidence parameter. Should be value in range 0.1 - 1.0.')
-
-    def _waitForCamera(self):
-        while self._handler.is_opened():
-            is_success, frame = self._handler.read()
-
-            if not is_success:
-                print("Video is empty.")
-                break
-
-            if is_success:
-                self._handler.run()
-                break
