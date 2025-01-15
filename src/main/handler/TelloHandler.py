@@ -37,7 +37,6 @@ class TelloHandler(Handler, ABC):
         self._drone_client.land()
 
     def move(self, angle: int, move_by: int):
-        print("move_by", move_by)
         self._drone_client.send_rc_control(
             int(0),
             int(move_by),
