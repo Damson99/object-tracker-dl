@@ -27,6 +27,3 @@ class FileHandler(Handler, ABC):
 
     def move(self, angle: int, deep_distance: int):
         pass
-
-    def run(self):
-        pass

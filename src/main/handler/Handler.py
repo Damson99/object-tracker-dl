@@ -6,10 +6,6 @@ import numpy
 class Handler(ABC):
 
     @abstractmethod
-    def run(self):
-        pass
-
-    @abstractmethod
     def is_opened(self) -> bool:
         pass
 
