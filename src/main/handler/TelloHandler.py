@@ -17,6 +17,7 @@ class TelloHandler(Handler, ABC):
         print(self._drone_client.get_battery())
         self._drone_client.streamon()
         self._drone_client.takeoff()
+        self._drone_client.move_up(50)
 
     def is_opened(self) -> bool:
         return true
